@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lyvely SDK - Basic Example</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+
+    .game-area {
+      background: #e0e0e0;
+      padding: 40px;
+      text-align: center;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .score {
+      font-size: 48px;
+      font-weight: bold;
+      color: #2196F3;
+      margin: 20px 0;
+    }
+
+    button {
+      background: #2196F3;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #1976D2;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .status.info {
+      background: #E3F2FD;
+      color: #1976D2;
+    }
+
+    .status.success {
+      background: #E8F5E9;
+      color: #388E3C;
+    }
+
+    .status.error {
+      background: #FFEBEE;
+      color: #C62828;
+    }
+
+    .leaderboard {
+      margin-top: 20px;
+    }
+
+    .leaderboard-entry {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .leaderboard-entry:first-child {
+      font-weight: bold;
+      background: #FFF9C4;
+    }
+
+    .logs {
+      background: #263238;
+      color: #4CAF50;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+
+    .log-entry {
+      margin: 2px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Lyvely SDK - Basic Integration Example</h1>
+
+    <div id="status" class="status info">
+      Initializing SDK...
+    </div>
+
+    <div class="game-area">
+      <h2>Simple Clicker Game</h2>
+      <div class="score" id="score">0</div>
+      <button id="clickBtn" disabled>Click Me!</button>
+      <br>
+      <button id="startBtn">Start New Game</button>
+      <button id="submitBtn" disabled>Submit Score</button>
+    </div>
+
+    <div class="leaderboard">
+      <h3>Leaderboard (Top 10)</h3>
+      <div id="leaderboardList">
+        <p style="text-align: center; color: #999;">No data yet</p>
+      </div>
+      <button id="refreshLeaderboard">Refresh Leaderboard</button>
+    </div>
+
+    <div class="logs" id="logs"></div>
+  </div>
+
+  <!-- Include Lyvely SDK -->
+  <script src="../dist/lyvely-game-sdk.js"></script>
+
+  <script>
+    // Game state
+    let score = 0;
+    let gameActive = false;
+
+    // UI Elements
+    const scoreEl = document.getElementById('score');
+    const statusEl = document.getElementById('status');
+    const clickBtn = document.getElementById('clickBtn');
+    const startBtn = document.getElementById('startBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const leaderboardList = document.getElementById('leaderboardList');
+    const refreshLeaderboardBtn = document.getElementById('refreshLeaderboard');
+    const logsEl = document.getElementById('logs');
+
+    // Logging helper
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = document.createElement('div');
+      logEntry.className = 'log-entry';
+      logEntry.textContent = `[${timestamp}] ${message}`;
+      logsEl.insertBefore(logEntry, logsEl.firstChild);
+      console.log(message);
+    }
+
+    function setStatus(message, type = 'info') {
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`;
+    }
+
+    // Initialize SDK
+    log('Initializing Lyvely SDK...');
+
+    const lyvely = new LyvelySDK({
+      gameId: 'game_example_123',
+      apiKey: 'pk_test_example_xyz789',
+      debug: true,
+      // For local development, you might need to point to your local API
+      // apiBaseUrl: 'http://localhost:3000'
+    });
+
+    // Setup event listeners
+    lyvely.on('ready', () => {
+      log('✓ SDK Ready');
+      setStatus('SDK Ready - Click "Start New Game" to begin', 'success');
+      startBtn.disabled = false;
+      refreshLeaderboardBtn.disabled = false;
+    });
+
+    lyvely.on('sessionStart', (data) => {
+      log(`✓ Session Started: ${data.sessionId}`);
+      setStatus(`Game started! Session: ${data.sessionId}`, 'success');
+    });
+
+    lyvely.on('sessionEnd', (data) => {
+      log(`✓ Session Ended - Final Score: ${data.finalScore}, Rank: ${data.rank}`);
+      setStatus(`Game ended! Your rank: #${data.rank}`, 'info');
+    });
+
+    lyvely.on('scoreSubmitted', (data) => {
+      log(`✓ Score Submitted: ${data.score} - Rank: #${data.rank}`);
+      if (data.isNewHighScore) {
+        setStatus(`New high score! Rank: #${data.rank}`, 'success');
+      } else {
+        setStatus(`Score submitted! Rank: #${data.rank}`, 'success');
+      }
+    });
+
+    lyvely.on('sessionExpired', () => {
+      log('⚠ Session Expired');
+      setStatus('Session expired due to inactivity', 'error');
+      gameActive = false;
+      clickBtn.disabled = true;
+      submitBtn.disabled = true;
+    });
+
+    lyvely.on('heartbeat', () => {
+      log('♥ Heartbeat sent');
+    });
+
+    lyvely.on('error', (error) => {
+      log(`✗ Error: ${error.message}`, 'error');
+      setStatus(`Error: ${error.message}`, 'error');
+    });
+
+    // Initialize SDK
+    lyvely.ready().catch(error => {
+      log(`✗ Failed to initialize SDK: ${error.message}`, 'error');
+      setStatus('Failed to initialize SDK. Check console for details.', 'error');
+    });
+
+    // Game logic
+    clickBtn.addEventListener('click', () => {
+      if (gameActive) {
+        score += 10;
+        scoreEl.textContent = score;
+        log(`Score increased: ${score}`);
+      }
+    });
+
+    startBtn.addEventListener('click', async () => {
+      try {
+        log('Starting new game session...');
+        setStatus('Starting game...', 'info');
+
+        // Start session (SDK will create anonymous user ID if needed)
+        await lyvely.startSession();
+
+        // Reset game state
+        score = 0;
+        scoreEl.textContent = score;
+        gameActive = true;
+
+        // Update UI
+        clickBtn.disabled = false;
+        submitBtn.disabled = false;
+        startBtn.disabled = true;
+
+      } catch (error) {
+        log(`✗ Failed to start session: ${error.message}`, 'error');
+        setStatus('Failed to start game', 'error');
+      }
+    });
+
+    submitBtn.addEventListener('click', async () => {
+      try {
+        log(`Submitting score: ${score}...`);
+        setStatus('Submitting score...', 'info');
+
+        // Submit score
+        const result = await lyvely.submitScore(score, {
+          duration: Math.floor(Math.random() * 120) + 30, // Random duration
+          clicks: Math.floor(score / 10)
+        });
+
+        // End session
+        await lyvely.endSession(score);
+
+        // Update game state
+        gameActive = false;
+        clickBtn.disabled = true;
+        submitBtn.disabled = true;
+        startBtn.disabled = false;
+
+        // Refresh leaderboard
+        await loadLeaderboard();
+
+      } catch (error) {
+        log(`✗ Failed to submit score: ${error.message}`, 'error');
+        setStatus('Failed to submit score', 'error');
+      }
+    });
+
+    refreshLeaderboardBtn.addEventListener('click', loadLeaderboard);
+
+    // Load leaderboard
+    async function loadLeaderboard() {
+      try {
+        log('Loading leaderboard...');
+
+        const leaderboard = await lyvely.getLeaderboard({
+          period: 'all',
+          limit: 10
+        });
+
+        if (leaderboard.entries.length === 0) {
+          leaderboardList.innerHTML = '<p style="text-align: center; color: #999;">No scores yet. Be the first!</p>';
+          return;
+        }
+
+        const html = leaderboard.entries.map(entry => `
+          <div class="leaderboard-entry">
+            <span>#${entry.rank} ${entry.username}</span>
+            <span>${entry.score} points</span>
+          </div>
+        `).join('');
+
+        leaderboardList.innerHTML = html;
+        log(`✓ Leaderboard loaded (${leaderboard.entries.length} entries)`);
+
+      } catch (error) {
+        log(`✗ Failed to load leaderboard: ${error.message}`, 'error');
+        leaderboardList.innerHTML = '<p style="text-align: center; color: #c62828;">Failed to load leaderboard</p>';
+      }
+    }
+  </script>
+</body>
+</html>

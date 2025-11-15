@@ -17,8 +17,16 @@ Official JavaScript SDK for integrating HTML5 games with the Lyvely platform. Pe
 
 ### Via CDN (Recommended for Construct 3)
 
-Use jsDelivr to load the SDK directly from GitHub:
+**Option 1: GitHub Raw (works immediately)**
+```html
+<!-- Specific version (recommended) -->
+<script src="https://raw.githubusercontent.com/GameTribeKenya/lyvely-construct-sdk/v0.1.0/dist/lyvely-game-sdk.js"></script>
 
+<!-- Latest from main branch -->
+<script src="https://raw.githubusercontent.com/GameTribeKenya/lyvely-construct-sdk/main/dist/lyvely-game-sdk.js"></script>
+```
+
+**Option 2: jsDelivr CDN (requires public repo)**
 ```html
 <!-- Latest version -->
 <script src="https://cdn.jsdelivr.net/gh/GameTribeKenya/lyvely-construct-sdk@latest/dist/lyvely-game-sdk.js"></script>
@@ -111,7 +119,7 @@ leaderboard.entries.forEach(entry => {
 <html>
 <head>
   <title>My Game - Lyvely Integration</title>
-  <script src="https://cdn.jsdelivr.net/gh/GameTribeKenya/lyvely-construct-sdk@latest/dist/lyvely-game-sdk.js"></script>
+  <script src="https://raw.githubusercontent.com/GameTribeKenya/lyvely-construct-sdk/main/dist/lyvely-game-sdk.js"></script>
 </head>
 <body>
   <div id="game"></div>

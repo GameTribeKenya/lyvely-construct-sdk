@@ -66,8 +66,8 @@ export interface Session {
   /** Heartbeat interval in milliseconds */
   heartbeatInterval: number;
 
-  /** User's historical stats for this game */
-  user?: UserStats;
+  /** User's historical stats for this game (required) */
+  user: UserStats;
 }
 
 /**

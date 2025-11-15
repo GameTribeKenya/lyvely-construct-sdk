@@ -1,5 +1,5 @@
 {
-  "name": "@lyvely/game-sdk",
+  "name": "@justbrian/lyvely-game-sdk",
   "version": "0.1.0",
   "type": "module",
   "description": "JavaScript SDK for integrating games with the Lyvely platform",
